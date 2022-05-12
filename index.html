@@ -102,7 +102,8 @@
         <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line"> <span class="string">&quot;fmt&quot;</span></span><br><span class="line">)</span><br><span class="line"> <span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>  &#123;</span><br><span class="line">  fmt.Println(<span class="string">&quot;go go go&quot;</span>)</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li>InnoDB 存储引擎<ul>
+<li><p>InnoDB 存储引擎</p>
+<ul>
 <li>版本功能<ul>
 <li>1.0.x compress和dynamic页格式</li>
 <li>1.1.x Linux AIO、多回滚段；单回滚段最大支持事务并数量1023</li>
@@ -131,13 +132,58 @@
 </li>
 </ul>
 </li>
+<li>内存<ul>
+<li>缓冲池<ul>
+<li>组成<ul>
+<li>数据页  </li>
+<li>索引页</li>
+<li>undo页</li>
+<li>插入缓存  </li>
+<li>自适应哈希索引</li>
+<li>锁信息</li>
+<li>数据字典信息</li>
 </ul>
 </li>
-<li>文件</li>
-<li>表</li>
-<li>索引与算法</li>
-<li>锁</li>
-<li>事务</li>
+<li>管理<ul>
+<li>LRU(Latest Recent Used) List<ul>
+<li>缓冲池中页的大小默认为16KB(支持压缩页)</li>
+<li>LRU改进点<ul>
+<li>midpoint insertion strategy<br>  innodb_old_blocks_pct 默认37: 表示新读取的页插入到LRU队表尾端37%的位置,防止扫描操作将热点数据从缓存中移除</li>
+<li>innodb_old_blocks_time<br>  缓存页读取到mid位置后需要等待多久才会被加入到LRU队表的热端</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Free List<ul>
+<li>空闲页队表</li>
+<li>获取缓冲池分页<ul>
+<li>Free 列表中查找空闲页</li>
+<li>LRU 淘汰末尾的页，内存空间分配给新页</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Flush List</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>重做日志缓冲redo log buffer</li>
+<li>额外的内存池</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>文件</p>
+</li>
+<li><p>表</p>
+</li>
+<li><p>索引与算法</p>
+</li>
+<li><p>锁</p>
+</li>
+<li><p>事务</p>
+</li>
 </ul>
 
       
