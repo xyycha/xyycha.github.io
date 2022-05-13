@@ -195,9 +195,9 @@
 <li>CheckPoint 技术<ul>
 <li>write ahead log<br>  当事务提交时，先写重做日志，再修改页</li>
 <li>作用<ul>
-<li>缩短数据库的恢复时间<br>  数据库发生宕机，不需要重做所有日志，checkpoint之前的页都已经刷新回磁盘。故只需对checkpoint后的重做日志进行恢复，大大缩短了恢复时间</li>
-<li>缓冲池不够用时，将脏页刷新到磁盘<br>  当缓冲池不够用时，根据LRU算法会溢出最近最少使用的页，当此页为脏页时，需要强制执行checkpoint，将脏页的新版本刷新回磁盘</li>
-<li>重做日志不可用时，刷新脏页<br>  当前数据库的设计都是循环使用重做日志，可以被重用的部分是指数据库恢复操作不需要这部分重做日志。若此时还需要使用，那么必须强制执行checkpoint，将缓存池中的页至少刷新到当前重做日志的位置</li>
+<li><strong>缩短数据库的恢复时间</strong><br>  数据库发生宕机，不需要重做所有日志，checkpoint之前的页都已经刷新回磁盘。故只需对checkpoint后的重做日志进行恢复，大大缩短了恢复时间</li>
+<li><strong>缓冲池不够用时，将脏页刷新到磁盘</strong><br>  当缓冲池不够用时，根据LRU算法会溢出最近最少使用的页，当此页为脏页时，需要强制执行checkpoint，将脏页的新版本刷新回磁盘</li>
+<li><strong>重做日志不可用时，刷新脏页</strong><br>  当前数据库的设计都是循环使用重做日志，可以被重用的部分是指数据库恢复操作不需要这部分重做日志。若此时还需要使用，那么必须强制执行checkpoint，将缓存池中的页至少刷新到当前重做日志的位置</li>
 </ul>
 </li>
 <li>LSN(Log Sequence Number 8字节)<ul>
@@ -210,14 +210,14 @@
 </ul>
 </li>
 <li>类型<ul>
-<li>sharp checkpoint<ul>
+<li><strong>sharp checkpoint</strong><ul>
 <li>类型<ul>
 <li>innodb_fast_shutdown &#x3D; 1 数据库关闭时将所有的脏页刷新回磁盘</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>fuzzy checkpoint<ul>
+<li><strong>fuzzy checkpoint</strong><ul>
 <li>类型<ul>
 <li><strong>master thread checkpoint</strong><br>  master根据当前数据库状态 定时 异步刷新一定比例的脏页回磁盘</li>
 <li><strong>flush lru list checkpoint</strong><br>  LRU列表需要有 innodb_lru_scan_depth 个空闲页可供使用，如果溢出的页中有脏页，需要进行checkpoint<br>  在1.1之前版本，阻塞用户的查询操作<br>  在1.2之后，放在了Page Cleaner线程中进行</li>
