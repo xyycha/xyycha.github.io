@@ -152,6 +152,11 @@
 <li>innodb_old_blocks_time<br>  缓存页读取到mid位置后需要等待多久才会被加入到LRU队表的热端</li>
 </ul>
 </li>
+<li>Unzip LRU<ul>
+<li>支持页的压缩 unzip LRU 包含在 LRU List中</li>
+<li>分配方式 伙伴算法<br>  举例：申请4K缓存页，先查看4K的unzip LRU列表，如果有直接使用；否则查看8K的unzip LRU列表，如果有将页分为2个4K页；如果不能，从LRU队表中申请一个16K，将页分为1个8K，2个4K，分别放到对应的unzip LRU列表中</li>
+</ul>
+</li>
 </ul>
 </li>
 <li>Free List<ul>
@@ -163,13 +168,67 @@
 </li>
 </ul>
 </li>
-<li>Flush List</li>
+<li>Flush List<ul>
+<li>管理将脏页刷新回磁盘</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>重做日志缓冲redo log buffer</li>
-<li>额外的内存池</li>
+</ul>
+</li>
+<li>重做日志缓冲redo log buffer<ul>
+<li>innodb_log_buffer_size 控制内存中 重做日志缓冲的大小，默认8M</li>
+<li>刷新到磁盘时机<ul>
+<li>master thread 每1秒将重做日志缓冲刷新到重做日志文件；</li>
+<li>每个事务提交时会将重做日志缓冲刷新到重做日志文件；</li>
+<li>当重做日志缓冲池剩余空间小于1&#x2F;2时，重做日志缓冲刷新到重做日志文件；</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>额外的内存池<ul>
+<li>在 innodb 存储引擎中，对内存的管理是通过一种称为内存堆的方式进行的；在对一些数据结构本身的内存进行分配时，需要从额外的内存池中进行申请，当该区域的内存不够时，会从缓存池中进行申请。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>CheckPoint 技术<ul>
+<li>write ahead log<br>  当事务提交时，先写重做日志，再修改页</li>
+<li>作用<ul>
+<li>缩短数据库的恢复时间<br>  数据库发生宕机，不需要重做所有日志，checkpoint之前的页都已经刷新回磁盘。故只需对checkpoint后的重做日志进行恢复，大大缩短了恢复时间</li>
+<li>缓冲池不够用时，将脏页刷新到磁盘<br>  当缓冲池不够用时，根据LRU算法会溢出最近最少使用的页，当此页为脏页时，需要强制执行checkpoint，将脏页的新版本刷新回磁盘</li>
+<li>重做日志不可用时，刷新脏页<br>  当前数据库的设计都是循环使用重做日志，可以被重用的部分是指数据库恢复操作不需要这部分重做日志。若此时还需要使用，那么必须强制执行checkpoint，将缓存池中的页至少刷新到当前重做日志的位置</li>
+</ul>
+</li>
+<li>LSN(Log Sequence Number 8字节)<ul>
+<li>页LSN 重做日志LSN checkpoint LSN  <ul>
+<li>log sequence num  </li>
+<li>log flushed up to (redo LSN)</li>
+<li>last checkpoint at (checkpoint LSN)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>类型<ul>
+<li>sharp checkpoint<ul>
+<li>类型<ul>
+<li>innodb_fast_shutdown &#x3D; 1 数据库关闭时将所有的脏页刷新回磁盘</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>fuzzy checkpoint<ul>
+<li>类型<ul>
+<li>master thread checkpoint<br>  master根据当前数据库状态 定时 异步刷新一定比例的脏页回磁盘</li>
+<li>flush lru list checkpoint<br>  LRU列表需要有 innodb_lru_scan_depth 个空闲页可供使用，如果溢出的页中有脏页，需要进行checkpoint<br>  在1.1之前版本，阻塞用户的查询操作<br>  在1.2之后，放在了Page Cleaner线程中进行</li>
+<li>async&#x2F;sync flush checkpoint<br>  保持redo日志文件的可用性执行的checkpoint，分为同步和异步两种<br>  checkpoint_age &#x3D; redo lsn - checkpoint lsn<br>  async_water_mark &#x3D; 75% * total_redo_log_file_size<br>  sync_water_mark &#x3D; 90% * total_redo_log_file_size<br>  checkpoint_age &lt; async_water_mark 不需要刷新脏页回磁盘<br>  async_water_mark &lt; checkpoint_age &lt; sync_water_mark 触发async flush<br>  checkpoint_age &gt; sync_water_mark 触发 sync flush（重做日志太小、load data等bulk insert操作）<br>  1.2之前：async flush会阻塞发现问题的用户；sync flush会阻塞所有用户<br>  1.2之后：async&#x2F;sync flush 放入到了单独的page cleaner thread 不会阻塞用户查询</li>
+<li>dirty page too much checkpoint<br>  缓存中脏页太多，保持缓存中有足够可用的页 innodb_max_dirty_pages_pct 默认75%</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
