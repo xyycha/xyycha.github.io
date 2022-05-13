@@ -14,7 +14,7 @@
 <meta property="og:description" content="1234567package mainimport ( &quot;fmt&quot;) func main()  &amp;#123;  fmt.Println(&quot;go go go&quot;) &amp;#125;   InnoDB 存储引擎  版本功能 1.0.x compress和dynamic页格式 1.1.x Linux AIO、多回滚段；单回滚段最大支持事务并数量1023 1.2.x 全文">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-11T02:06:38.000Z">
-<meta property="article:modified_time" content="2022-05-13T02:40:45.739Z">
+<meta property="article:modified_time" content="2022-05-13T03:37:45.075Z">
 <meta property="article:author" content="yuan yang">
 <meta property="article:tag" content="mysql">
 <meta name="twitter:card" content="summary">
@@ -220,10 +220,10 @@
 </li>
 <li>fuzzy checkpoint<ul>
 <li>类型<ul>
-<li>master thread checkpoint<br>  master根据当前数据库状态 定时 异步刷新一定比例的脏页回磁盘</li>
-<li>flush lru list checkpoint<br>  LRU列表需要有 innodb_lru_scan_depth 个空闲页可供使用，如果溢出的页中有脏页，需要进行checkpoint<br>  在1.1之前版本，阻塞用户的查询操作<br>  在1.2之后，放在了Page Cleaner线程中进行</li>
-<li>async&#x2F;sync flush checkpoint<br>  保持redo日志文件的可用性执行的checkpoint，分为同步和异步两种<br>  checkpoint_age &#x3D; redo lsn - checkpoint lsn<br>  async_water_mark &#x3D; 75% * total_redo_log_file_size<br>  sync_water_mark &#x3D; 90% * total_redo_log_file_size<br>  checkpoint_age &lt; async_water_mark 不需要刷新脏页回磁盘<br>  async_water_mark &lt; checkpoint_age &lt; sync_water_mark 触发async flush<br>  checkpoint_age &gt; sync_water_mark 触发 sync flush（重做日志太小、load data等bulk insert操作）<br>  1.2之前：async flush会阻塞发现问题的用户；sync flush会阻塞所有用户<br>  1.2之后：async&#x2F;sync flush 放入到了单独的page cleaner thread 不会阻塞用户查询</li>
-<li>dirty page too much checkpoint<br>  缓存中脏页太多，保持缓存中有足够可用的页 innodb_max_dirty_pages_pct 默认75%</li>
+<li><strong>master thread checkpoint</strong><br>  master根据当前数据库状态 定时 异步刷新一定比例的脏页回磁盘</li>
+<li><strong>flush lru list checkpoint</strong><br>  LRU列表需要有 innodb_lru_scan_depth 个空闲页可供使用，如果溢出的页中有脏页，需要进行checkpoint<br>  在1.1之前版本，阻塞用户的查询操作<br>  在1.2之后，放在了Page Cleaner线程中进行</li>
+<li><strong>async&#x2F;sync flush checkpoint</strong><br>  保持redo日志文件的可用性执行的checkpoint，分为同步和异步两种<br>  checkpoint_age &#x3D; redo lsn - checkpoint lsn<br>  async_water_mark &#x3D; 75% * total_redo_log_file_size<br>  sync_water_mark &#x3D; 90% * total_redo_log_file_size<br>  checkpoint_age &lt; async_water_mark 不需要刷新脏页回磁盘<br>  async_water_mark &lt; checkpoint_age &lt; sync_water_mark 触发async flush<br>  checkpoint_age &gt; sync_water_mark 触发 sync flush（重做日志太小、load data等bulk insert操作）<br>  1.2之前：async flush会阻塞发现问题的用户；sync flush会阻塞所有用户<br>  1.2之后：async&#x2F;sync flush 放入到了单独的page cleaner thread 不会阻塞用户查询</li>
+<li><strong>dirty page too much checkpoint</strong><br>  缓存中脏页太多，保持缓存中有足够可用的页 innodb_max_dirty_pages_pct 默认75%</li>
 </ul>
 </li>
 </ul>
