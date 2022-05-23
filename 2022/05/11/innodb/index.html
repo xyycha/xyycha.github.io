@@ -14,7 +14,7 @@
 <meta property="og:description" content="1234567package mainimport ( &quot;fmt&quot;) func main()  &amp;#123;  fmt.Println(&quot;go go go&quot;) &amp;#125;   InnoDB 存储引擎  版本功能  1.0.x compress和dynamic页格式 1.1.x Linux AIO、多回滚段；单回滚段最大支持事务并数量1023 1.2.x 全">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-11T02:06:38.000Z">
-<meta property="article:modified_time" content="2022-05-23T01:52:04.608Z">
+<meta property="article:modified_time" content="2022-05-23T07:41:13.572Z">
 <meta property="article:author" content="yuan yang">
 <meta property="article:tag" content="mysql">
 <meta name="twitter:card" content="summary">
@@ -217,7 +217,9 @@
 <li>类型<ul>
 <li><strong>sharp checkpoint</strong><ul>
 <li>类型<ul>
+<li>innodb_fast_shutdown &#x3D; 0 数据库关闭时完成所有的full purge和merge insert buff，并且将所有的脏页刷新回磁盘。 InnoDB升级时，必须调整为0，再关闭数据库</li>
 <li>innodb_fast_shutdown &#x3D; 1 数据库关闭时将所有的脏页刷新回磁盘</li>
+<li>innodb_fast_shutdown &#x3D; 2 数据库关闭时将日志写入到日志文件中，不进行其他操作。下次数据库启动时，进行recover操作</li>
 </ul>
 </li>
 </ul>
@@ -238,8 +240,7 @@
 </li>
 <li><p>InnoDB 关键特征</p>
 <ul>
-<li><p>插入缓存(Insert Buffer)</p>
-<ul>
+<li>插入缓存(Insert Buffer)<ul>
 <li>含义<br>  Insert Buffer和数据页一样，也是物理页的一个组成部分<br>  B+树的特性导致了非聚簇索引插入的离散型<br>  - 非聚簇索引页是否在缓存池中，存在直接插入<br>  - 不存在，先放到一个Insert Buffer对象中，并没有插入到索引的叶子节点<br>  - Insert Buffer和辅助索引页子节点的merge(多个插入合并到一个操作)</li>
 <li>条件<ul>
 <li>索引是辅助索引</li>
@@ -295,8 +296,7 @@
 </li>
 </ul>
 </li>
-<li><p>双写(double write)</p>
-<ul>
+<li>双写(double write)<ul>
 <li>背景<ul>
 <li>InnoDB存储引擎在写入某个页到表中时，数据库发生了宕机，16KB的页只写入了前4KB的数据，这种情况称为 部分写失效</li>
 <li>double write带给了InnoDB存储引擎 数据页的可靠性</li>
@@ -320,9 +320,8 @@
 </li>
 </ul>
 </li>
-<li><p>自适应哈希</p>
-<ul>
-<li>条件：<ul>
+<li>自适应哈希<ul>
+<li>条件<ul>
 <li>对这个页的连续访问模式必须是一样的；访问模式指查询条件一样，若交替 WHERE a &#x3D; xxx 和 WHERE a &#x3D;xxx and b &#x3D; xxx 查询，不会对该页构造AHI</li>
 <li>以该模式访问了100次</li>
 <li>页通过该模式访问了N次，其中 N &#x3D; 页中记录 &#x2F; 16</li>
@@ -330,9 +329,38 @@
 </li>
 </ul>
 </li>
-<li><p>异步IO</p>
+<li>异步IO<ul>
+<li>定义与优势<ul>
+<li>用户可以在发出一个IO请求后立即再发送另一个IO请求，当全部IO请求发送完毕后，等待所有IO操作的完成</li>
+<li>IO Merge操作，将多个IO合并为1个IO，提高IOPS的性能</li>
+</ul>
 </li>
-<li><p>刷新邻接页</p>
+<li>参数控制<ul>
+<li>innodb_use_native_aio 控制是否启用 Native AIO. Linux操作系统默认 ON</li>
+</ul>
+</li>
+<li>用途<ul>
+<li>read ahead方式的读取</li>
+<li>脏页的刷新</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>刷新邻接页<ul>
+<li>定义<ul>
+<li>Flush Neighbor Page：当刷新一个脏页时，InnoDB存储引擎会检测该页所在的区(extent)的所有页，如果是脏页，那么一起进行刷新。通过AIO可以将多个IO写入操作合并成为一个IO操作，故该工作机制在 <strong>传统机械磁盘</strong> 下有着显著优势</li>
+</ul>
+</li>
+<li>问题<ul>
+<li>将不怎么脏的页进行了写入，又很快变成了脏页</li>
+<li>固态硬盘有着较高的IOPS，是否需要这个特性</li>
+</ul>
+</li>
+<li>参数控制<ul>
+<li>innodb_flush_neighbors 传统机械硬盘开启；固态硬盘 关闭</li>
+</ul>
+</li>
+</ul>
 </li>
 </ul>
 </li>
