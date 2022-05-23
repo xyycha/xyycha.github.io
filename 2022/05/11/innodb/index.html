@@ -6,15 +6,15 @@
   
   <title>Innodb | 读书笔记</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="1234567package mainimport ( &quot;fmt&quot;) func main()  &amp;#123;  fmt.Println(&quot;go go go&quot;) &amp;#125;   InnoDB 存储引擎  版本功能 1.0.x compress和dynamic页格式 1.1.x Linux AIO、多回滚段；单回滚段最大支持事务并数量1023 1.2.x 全文">
+  <meta name="description" content="1234567package mainimport ( &quot;fmt&quot;) func main()  &amp;#123;  fmt.Println(&quot;go go go&quot;) &amp;#125;   InnoDB 存储引擎  版本功能  1.0.x compress和dynamic页格式 1.1.x Linux AIO、多回滚段；单回滚段最大支持事务并数量1023 1.2.x 全">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Innodb">
 <meta property="og:url" content="https://xyycha.github.io/2022/05/11/innodb/index.html">
 <meta property="og:site_name" content="读书笔记">
-<meta property="og:description" content="1234567package mainimport ( &quot;fmt&quot;) func main()  &amp;#123;  fmt.Println(&quot;go go go&quot;) &amp;#125;   InnoDB 存储引擎  版本功能 1.0.x compress和dynamic页格式 1.1.x Linux AIO、多回滚段；单回滚段最大支持事务并数量1023 1.2.x 全文">
+<meta property="og:description" content="1234567package mainimport ( &quot;fmt&quot;) func main()  &amp;#123;  fmt.Println(&quot;go go go&quot;) &amp;#125;   InnoDB 存储引擎  版本功能  1.0.x compress和dynamic页格式 1.1.x Linux AIO、多回滚段；单回滚段最大支持事务并数量1023 1.2.x 全">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-11T02:06:38.000Z">
-<meta property="article:modified_time" content="2022-05-13T09:53:53.402Z">
+<meta property="article:modified_time" content="2022-05-23T01:52:04.608Z">
 <meta property="article:author" content="yuan yang">
 <meta property="article:tag" content="mysql">
 <meta name="twitter:card" content="summary">
@@ -105,13 +105,15 @@
 <ul>
 <li><p>InnoDB 存储引擎</p>
 <ul>
-<li>版本功能<ul>
+<li><p>版本功能</p>
+<ul>
 <li>1.0.x compress和dynamic页格式</li>
 <li>1.1.x Linux AIO、多回滚段；单回滚段最大支持事务并数量1023</li>
 <li>1.2.x 全文索引、在线索引添加</li>
 </ul>
 </li>
-<li>后台线程<ul>
+<li><p>后台线程</p>
+<ul>
 <li>Master Thread<ul>
 <li>脏页刷新；1.2版本之后，迁移到page clean thread</li>
 <li>合并插入缓存</li>
@@ -133,7 +135,8 @@
 </li>
 </ul>
 </li>
-<li>内存<ul>
+<li><p>内存</p>
+<ul>
 <li>缓冲池<ul>
 <li>组成<ul>
 <li>数据页  </li>
@@ -193,7 +196,8 @@
 </li>
 </ul>
 </li>
-<li>CheckPoint 技术<ul>
+<li><p>CheckPoint 技术</p>
+<ul>
 <li>write ahead log<br>  当事务提交时，先写重做日志，再修改页</li>
 <li>作用<ul>
 <li><strong>缩短数据库的恢复时间</strong><br>  数据库发生宕机，不需要重做所有日志，checkpoint之前的页都已经刷新回磁盘。故只需对checkpoint后的重做日志进行恢复，大大缩短了恢复时间</li>
@@ -229,6 +233,106 @@
 </ul>
 </li>
 </ul>
+</li>
+</ul>
+</li>
+<li><p>InnoDB 关键特征</p>
+<ul>
+<li><p>插入缓存(Insert Buffer)</p>
+<ul>
+<li>含义<br>  Insert Buffer和数据页一样，也是物理页的一个组成部分<br>  B+树的特性导致了非聚簇索引插入的离散型<br>  - 非聚簇索引页是否在缓存池中，存在直接插入<br>  - 不存在，先放到一个Insert Buffer对象中，并没有插入到索引的叶子节点<br>  - Insert Buffer和辅助索引页子节点的merge(多个插入合并到一个操作)</li>
+<li>条件<ul>
+<li>索引是辅助索引</li>
+<li>索引不是唯一的</li>
+</ul>
+</li>
+<li>实现<ul>
+<li>Insert Buffer的数据结构也是一棵B+树</li>
+<li>存放在共享表空间，默认就是ibdata1: 仅通过独立表空间ibd文件恢复表中的数据时，往往会因为辅助索引的数据还在Insert Buffer导致check table失败，额外repair table重建表上的所有辅助索引</li>
+<li>非叶子节点<ul>
+<li>space：4字节，待插入记录所有表的表空间id</li>
+<li>marker：1字节，兼容版本</li>
+<li>offset：4字节，表示页所在的偏移量</li>
+</ul>
+</li>
+<li>叶子节点<ul>
+<li>space：4字节，待插入记录所有表的表空间id</li>
+<li>marker：1字节，兼容版本</li>
+<li>offset：4字节，表示页所在的偏移量</li>
+<li>metadata：4字节<ul>
+<li>IBUF_REC_OFFSET_COUNT：2字节 排序每个记录插入Insert Buffer的顺序</li>
+<li>IBUF_REC_OFFSET_TYPE：1字节</li>
+<li>IBUF_REC_OFFSET_FLAGS：1字节</li>
+</ul>
+</li>
+<li>secondary index record</li>
+</ul>
+</li>
+<li>Insert Buffer Bitmap<ul>
+<li>作用：辅助索引页中的记录可能插入到了Insert Buffer B+树中，必须保证每个merge insert buffer成功，需要有一个特殊的页来标记每个辅助索引页(space, page_no)的可用空间。这个页的类型为Insert Buffer Bitmap</li>
+<li>位置：每个Insert Buffer Bitmap页用来追踪16384个辅助索引页，也就是256区。每个Insert Buffer Bitmap页都在16384个页的第二个页中</li>
+<li>存储：每个辅助索引页在 Insert Buffer Bitmap页中占用4位<ul>
+<li>IBUF_BITMAP_FREE 2位 表示该辅助索引页中的可用空间数量<ul>
+<li>0 表示无可用剩余空间</li>
+<li>1 表示剩余空间大于 1&#x2F;32页(512字节)</li>
+<li>2 表示剩余空间大于 1&#x2F;16页</li>
+<li>3 表示剩余空间大于1&#x2F;8页</li>
+</ul>
+</li>
+<li>IBUF_BITMAP_BUFFERED 1位 表示该辅助索引页有记录被缓存在Insert Buffer B+树中</li>
+<li>IBUF_BITMAP_IBUF 1位 表示该页为Insert Buffer B+树的索引页</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Merge Insert Buffer<ul>
+<li>辅助索引被读取到缓冲池时</li>
+<li>Insert Buffer Bitmap页追踪到该辅助索引页无可用空间时</li>
+<li>Master Thread 每秒或者每十秒进行一次 根据 srv_innodb_io_capacity的百分比进行Merge Insert Buffer操作</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>双写(double write)</p>
+<ul>
+<li>背景<ul>
+<li>InnoDB存储引擎在写入某个页到表中时，数据库发生了宕机，16KB的页只写入了前4KB的数据，这种情况称为 部分写失效</li>
+<li>double write带给了InnoDB存储引擎 数据页的可靠性</li>
+</ul>
+</li>
+<li>redo日志恢复的不足<ul>
+<li>redo日志记录的是对页的物理操作，偏移量800，写入”a”记录。当数据页本身已经发生了损坏，再对其进行重做是没有意义的。</li>
+</ul>
+</li>
+<li>设计<ul>
+<li>double write buffer 大小2MB</li>
+<li>double write 页：共享表空间的连续128个页，即2个区，大小同样为2MB</li>
+<li>页写入过程<ul>
+<li>通过memcpy函数将脏页先复制到内存中的double write buffer上</li>
+<li>分两次，每次1MB <strong>顺序的写入</strong> 共享表空间的物理磁盘上，开销不大</li>
+<li>马上调用fsync函数，同步到磁盘，避免缓冲写带来的问题</li>
+<li>再将double write buffer中的页写入到各个表空间文件中，此时的写入是 <strong>离散的</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>自适应哈希</p>
+<ul>
+<li>条件：<ul>
+<li>对这个页的连续访问模式必须是一样的；访问模式指查询条件一样，若交替 WHERE a &#x3D; xxx 和 WHERE a &#x3D;xxx and b &#x3D; xxx 查询，不会对该页构造AHI</li>
+<li>以该模式访问了100次</li>
+<li>页通过该模式访问了N次，其中 N &#x3D; 页中记录 &#x2F; 16</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>异步IO</p>
+</li>
+<li><p>刷新邻接页</p>
 </li>
 </ul>
 </li>
