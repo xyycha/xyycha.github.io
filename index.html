@@ -102,8 +102,7 @@
         <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line"> <span class="string">&quot;fmt&quot;</span></span><br><span class="line">)</span><br><span class="line"> <span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>  &#123;</span><br><span class="line">  fmt.Println(<span class="string">&quot;go go go&quot;</span>)</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><p>InnoDB 存储引擎</p>
-<ul>
+<li>InnoDB 存储引擎<ul>
 <li><p>版本功能</p>
 <ul>
 <li>1.0.x compress和dynamic页格式</li>
@@ -363,18 +362,44 @@
 </li>
 </ul>
 </li>
+<li><p>启动、关闭、恢复</p>
+<ul>
+<li>关闭<ul>
+<li>innodb_fast_shutdown &#x3D; 0 数据库关闭时完成所有的full purge和merge insert buff，并且将所有的脏页刷新回磁盘。 InnoDB升级时，必须调整为0，再关闭数据库</li>
+<li>innodb_fast_shutdown &#x3D; 1 数据库关闭时将所有的脏页刷新回磁盘</li>
+<li>innodb_fast_shutdown &#x3D; 2 数据库关闭时将日志写入到日志文件中，不进行其他操作。下次数据库启动时，进行recover操作</li>
 </ul>
 </li>
-<li><p>文件</p>
+<li>恢复<ul>
+<li>原因<ul>
+<li>innodb_fast_shutdown &#x3D; 2 重启或者关闭数据库</li>
+<li>数据库异常关闭(kill命令关闭数据库等)</li>
+</ul>
 </li>
-<li><p>表</p>
+<li>参数控制<ul>
+<li>innodb_force_recovery(0-6)<ul>
+<li>0 进行所有的恢复操作，失败宕机，错误写入错误日志</li>
+<li>1 SRV_FORCE_IGNORE_CORRUPT 忽略检查到的失效页</li>
+<li>2 SRV_FORCE_NO_BACKGROUND 阻止Master Thread运行</li>
+<li>3 SRV_FORCE_NO_TRX_UNDO 不进行事务回滚操作(3和5的区别？)</li>
+<li>4 SRV_FORCE_NO_IBUF_MERGE 不进行插入缓存的合并</li>
+<li>5 SRV_FORCE_NO_UNDO_LOG_SCAN 不查看undo日志，将未提交的事务视为已提交</li>
+<li>6 SRV_FORCE_NO_LOG_REDO 不执行前滚操作(执行成功，写入了redo文件，没有刷新到磁盘；恢复时不会根据redo日志完成数据的补齐)</li>
+</ul>
 </li>
-<li><p>索引与算法</p>
+</ul>
 </li>
-<li><p>锁</p>
+</ul>
 </li>
-<li><p>事务</p>
+</ul>
 </li>
+</ul>
+</li>
+<li>文件</li>
+<li>表</li>
+<li>索引与算法</li>
+<li>锁</li>
+<li>事务</li>
 </ul>
 
       
