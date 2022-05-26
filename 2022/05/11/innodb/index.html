@@ -14,7 +14,7 @@
 <meta property="og:description" content="1234567package mainimport ( &quot;fmt&quot;) func main()  &amp;#123;  fmt.Println(&quot;go go go&quot;) &amp;#125;   InnoDB 存储引擎 版本功能  1.0.x compress和dynamic页格式 1.1.x Linux AIO、多回滚段；单回滚段最大支持事务并数量1023 1.2.x 全文">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-11T02:06:38.000Z">
-<meta property="article:modified_time" content="2022-05-26T01:00:20.367Z">
+<meta property="article:modified_time" content="2022-05-26T01:32:59.816Z">
 <meta property="article:author" content="yuan yang">
 <meta property="article:tag" content="mysql">
 <meta name="twitter:card" content="summary">
@@ -396,7 +396,84 @@
 </li>
 </ul>
 </li>
-<li>文件</li>
+<li>文件<ul>
+<li>参数文件<ul>
+<li>动态参数</li>
+<li>静态参数</li>
+</ul>
+</li>
+<li>日志文件<ul>
+<li>错误日志<ul>
+<li>不仅记录了错误日志，还有警报日志</li>
+</ul>
+</li>
+<li>二进制日志<ul>
+<li>对mysql数据库执行更改的所有操作<ul>
+<li>不包含select和show操作</li>
+<li>执行修改操作，没有产生影响也会记录</li>
+</ul>
+</li>
+<li>作用<ul>
+<li>恢复：某些数据库恢复需要使用二进制日志，数据库全备文件恢复后，可以使用日志进行point-in-time恢复</li>
+<li>复制：通过复制和执行二进制日志，使slave数据库实时同步master数据库</li>
+<li>审计：是否有对数据库进行注入的攻击</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>慢查询日志<ul>
+<li>参数控制<ul>
+<li>long_query_time 查询耗时的阈值</li>
+<li>log_queries_not_using_indexes 没有使用索引的查询是否记录到日志中</li>
+<li>log_throttle_queries_not_using_indexes 每分钟允许记录到日志中的且未使用索引的sql语句次数</li>
+</ul>
+</li>
+<li>工具<ul>
+<li>mysqldumpslow 命令分析日志</li>
+</ul>
+</li>
+<li>输出形式<ul>
+<li>文件 log_output &#x3D; FILE</li>
+<li>数据表 log_output &#x3D; TABLE</li>
+</ul>
+</li>
+<li>缓存池影响<ul>
+<li>原因：数据页缓存在缓冲池中，sql执行时间短，不会触发long_query_time的阈值，产生慢查询检测盲点</li>
+<li>innodb优化<ul>
+<li>区别逻辑读取与物理读取<ul>
+<li>物理读取 从磁盘进行IO读取的次数</li>
+<li>逻辑读取 所有的读取，包括磁盘和缓冲池</li>
+</ul>
+</li>
+<li>参数控制<ul>
+<li>long_query_io 逻辑IO次数的阈值 超过写入慢查询日志中</li>
+<li>slow_query_type 兼容老版本，指定slow log的方式<ul>
+<li>0 不记录</li>
+<li>1 根据运行时间</li>
+<li>2 根据逻辑IO次数</li>
+<li>3 根据运行时间以及逻辑IO次数</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>查询日志<ul>
+<li>所有查询请求，包含执行失败的请求</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>socket文件</li>
+<li>pid文件</li>
+<li>mysql表结构文件</li>
+<li>存储引擎文件</li>
+</ul>
+</li>
 <li>表</li>
 <li>索引与算法</li>
 <li>锁</li>
